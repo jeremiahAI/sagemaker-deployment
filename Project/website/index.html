@@ -1,51 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>Sentiment Analysis Web App</title>
-        <meta charset="utf-8">
-        <meta name="viewport"  content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-        <script>
-         "use strict";
-         function submitForm(oFormElement) {
-             var xhr = new XMLHttpRequest();
-             xhr.onload = function() {
-                 var result = parseFloat(xhr.responseText);
-                 var resultElement = document.getElementById('result');
-                 if (result == 0) {
-                     resultElement.className = 'bg-danger';
-                     resultElement.innerHTML = 'Your review was NEGATIVE!';
-                 } else {
-                     resultElement.className = 'bg-success';
-                     resultElement.innerHTML = 'Your review was POSITIVE!';
-                 }
-             }
-             xhr.open (oFormElement.method, oFormElement.action, true);
-             var review = document.getElementById('review');
-             xhr.send (review.value);
-             return false;
-         }
-        </script>
+<head>
+    <title>Sentiment Analysis Web App</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-    </head>
-    <body>
+    <style>
+        /* This is the submit button styles */
+        button {
+            display: block;
+            margin: 0 auto;
+            padding: .6em .8em;
+            /* Font-size is the root value that determines size of spinner parts. Change this to whatever you want and spinner elements will size to match. */
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: .4em;
+            border: none;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            transition: all 1s;
+        }
 
-        <div class="container">
-            <h1>Is your review positive, or negative?</h1>
-            <p>Enter your review below and click submit to find out...</p>
-            <form method="POST"
-                  action="**REPLACE WITH PUBLIC API URL**"
-                  onsubmit="return submitForm(this);" >                     <!-- HERE IS WHERE YOU NEED TO ENTER THE API URL -->
-                <div class="form-group">
-                    <label for="review">Review:</label>
-                    <textarea class="form-control"  rows="5" id="review">Please write your review here.</textarea>
-                </div>
-                <button type="submit" class="btn btn-default">Submit</button>
-            </form>
-            <h1 class="bg-success" id="result"></h1>
-        </div>
-    </body>
+        /* focus/disabled styles, you can change this for accessibility */
+        button:focus,
+        button:disabled {
+            outline: none;
+            background: #aaa;
+        }
+
+        /* This is the space for the spinner to appear, applied to the button */
+        .spin {
+            padding-left: 2.5em;
+        }
+
+        /* position of the spinner when it appears, you might have to change these values */
+        .spin .spinner {
+            left: -.6em;
+            top: .4em;
+            width: 2.5em;
+            display: block;
+            position: absolute;
+        }
+
+        /* spinner animation */
+        @keyframes spinner {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* The actual spinner element is a pseudo-element */
+        .spin .spinner::before {
+            content: "";
+            width: 1.5em;
+            /* Size of the spinner */
+            height: 1.5em;
+            /* Change as desired */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border-radius: 50%;
+            border: solid .35em #999;
+            /* Thickness/color of spinner track */
+            border-bottom-color: #555;
+            /* Color of variant spinner piece */
+            animation: .8s linear infinite spinner;
+            /* speed of spinner */
+            transform: translate(-50%, -50%);
+            will-change: transform;
+        }
+
+        /* optional, but it will affect the size if changed */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        /* generic document styles below */
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            padding: 0 20px;
+        }
+    </style>
+
+    <script>
+        "use strict";
+
+        function submitForm(oFormElement) {
+            var xhr = new XMLHttpRequest();
+            let btn = document.querySelector('button');
+            var resultElement = document.getElementById('result');
+
+            resultElement.innerHTML = '';
+            btn.classList.add('spin');
+            btn.disabled = true;
+            xhr.onerror = () => {
+                btn.classList.remove('spin');
+                btn.disabled = false;
+                resultElement.className = 'bg-warning';
+                resultElement.innerHTML = 'An error occured while accessing the endpoint.';
+            }
+
+            xhr.onload = function () {
+                var result = parseFloat(xhr.responseText);
+
+                btn.classList.remove('spin');
+                btn.disabled = false;
+
+                if (result == 0) {
+                    resultElement.className = 'bg-danger';
+                    resultElement.innerHTML = 'Your review was NEGATIVE!';
+                } else {
+                    resultElement.className = 'bg-success';
+                    resultElement.innerHTML = 'Your review was POSITIVE!';
+                }
+
+            }
+            xhr.open(oFormElement.method, oFormElement.action, true);
+            var review = document.getElementById('review');
+            xhr.send(review.value);
+            return false;
+        }
+    </script>
+
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Is your review positive, or negative?</h1>
+        <p>Enter your review below and click submit to find out...</p>
+        <form method="POST" action="https://ay0rirvgp4.execute-api.us-east-1.amazonaws.com/prod/"
+            onsubmit="return submitForm(this);">
+            <div class="form-group">
+                <label for="review">Review:</label>
+                <textarea class="form-control" rows="5" id="review">Please write your review here.</textarea>
+            </div>
+            <button type="submit" class="btn btn-default">Submit<span class="spinner"></span></button>
+        </form>
+        <h1 class="bg-success" id="result"></h1>
+    </div>
+</body>
+
 </html>
